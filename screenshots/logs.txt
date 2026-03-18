@@ -1,0 +1,90 @@
+labadmin@LAPTOP-FX516PM:~$ curl -X GET http://localhost/api/tasks/
+{"error":"Unauthorized","message":"กรุณา Login ก่อน — ไม่พบ Token ใน Authorization header"}labadmin@LAPTOP-FX51labadmin@LAPTOP-FX516PM:~$ curl -X POST http://localhost/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "mypassword123",
+    "name": "Test User"
+  }'
+{"message":"สมัครสมาชิกสำเร็จ","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTE3NzMyNDQ1NTUzNzQiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJyb2xlIjoibWVtYmVyIiwibmFtZSI6IlRlc3QgVXNlciIsImlhdCI6MTc3MzI0NDU1NSwiZXhwIjoxNzczMjQ4MTU1fQ.Pxya_d95INW2u-kwsIYIIW4YopxQE1ga_-kIJe69R_0","user":{"id":"user-1773244555374","email":"test@example.com","role":"member","name":"Test User"}}labadmin@LAPTOP-FX516PM:~$
+labadmin@LAPTOP-FX516PM:~$ curl -X POST http://localhost/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "alice@example.com",
+    "password": "password123"
+  }'
+{"message":"Login สำเร็จ","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTAwMSIsImVtYWlsIjoiYWxpY2VAZXhhbXBsZS5jb20iLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzczMjQ0NTk2LCJleHAiOjE3NzMyNDgxOTZ9.8mDIdwGW5xkcAudU1tv6koBi9IDs5K8almv3bDr6zJ8","user":{"id":"user-001","email":"alice@example.com","role":"member"}}labadmin@LAPTOP-FX516PM:~$
+labadmin@LAPTOP-FX516PM:~$ TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTAwMSIsImVtYWlsIjoiYWxpY2VAZXhhbXBsZS5jb20iLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzczMjQ0NTk2LCJleHAiOjE3NzMyNDgxOTZ9.8mDIdwGW5xkcAudU1tv6koBi9IDs5K8almv3bDr6zJ8
+labadmin@LAPTOP-FX516PM:~$ curl -X GET http://localhost/api/tasks/ \
+  -H "Authorization: Bearer $TOKEN"
+{"tasks":[{"id":1,"title":"ออกแบบ Database Schema","description":"วาด ERD สำหรับ Task Board","status":"DONE","priority":"high","owner_id":"user-001","assignee_id":null,"created_at":"2026-03-11T15:40:25.213Z","updated_at":"2026-03-11T15:40:25.213Z"},{"id":2,"title":"สร้าง Auth Service","description":"Implement JWT login/register","status":"IN_PROGRESS","priority":"high","owner_id":"user-001","assignee_id":null,"created_at":"2026-03-11T15:40:25.213Z","updated_at":"2026-03-11T15:40:25.213Z"}],"total":2}labadmin@LAPTOP-FX516PM:~$
+labadmin@LAPTOP-FX516PM:~$ curl -X GET http://localhost/api/tasks/ \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.INVALID.SIGNATURE"
+{"error":"Invalid Token","message":"Token ไม่ถูกต้อง"}labadmin@LAPTOP-FX516PM:~$
+labadmin@LAPTOP-FX516PM:~$ curl -X GET http://localhost/api/tasks/ \
+  -H "Authorization: Bearer ${TOKEN}xxx"
+{"error":"Invalid Token","message":"Token ไม่ถูกต้อง"}labadmin@LAPTOP-FX516PM:~$
+labadmin@LAPTOP-FX516PM:~$ ADMIN_TOKEN=$(curl -s -X POST http://localhost/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"password123"}' | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+# Admin ดู tasks ทั้งหมด (ไม่จำกัดเฉพาะของตัวเอง)
+curl -X GET http://localhost/api/tasks/ \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+
+# Admin ดู users ทั้งหมด
+curl -X GET http://localhost/api/users/ \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+
+# Alice ลอง ดู users ทั้งหมด (ไม่มีสิทธิ์)
+curl -X GET http://localhost/api/users/ \
+  -H "Authorization: Bearer $ALICE_TOKEN"
+{"tasks":[{"id":1,"title":"ออกแบบ Database Schema","description":"วาด ERD สำหรับ Task Board","status":"DONE","priority":"high","owner_id":"user-001","assignee_id":null,"created_at":"2026-03-11T15:40:25.213Z","updated_at":"2026-03-11T15:40:25.213Z"},{"id":2,"title":"สร้าง Auth Service","description":"Implement JWT login/register","status":"IN_PROGRESS","priority":"high","owner_id":"user-001","assignee_id":null,"created_at":"2026-03-11T15:40:25.213Z","updated_at":"2026-03-11T15:40:25.213Z"},{"id":3,"title":"เขียน Unit Tests","description":"เพิ่ม test coverage ให้ถึง 80%","status":"TODO","priority":"medium","owner_id":"user-002","assignee_id":null,"created_at":"2026-03-11T15:40:25.213Z","updated_at":"2026-03-11T15:40:25.213Z"},{"id":4,"title":"ทำ Docker Setup","description":"สร้าง docker-compose.yml","status":"DONE","priority":"high","owner_id":"user-admin","assignee_id":null,"created_at":"2026-03-11T15:40:25.213Z","updated_at":"2026-03-11T15:40:25.213Z"}],"total":4}{"users":[{"id":1,"user_id":"user-001","name":"Alice Smith","email":"alice@example.com","role":"member","created_at":"2026-03-11T15:40:25.355Z"},{"id":2,"user_id":"user-002","name":"Bob Jones","email":"bob@example.com","role":"member","created_at":"2026-03-11T15:40:25.355Z"},{"id":3,"user_id":"user-admin","name":"Admin User","email":"admin@example.com","role":"admin","created_at":"2026-03-11T15:40:25.355Z"}],"total":3}{"error":"Unauthorized","message":"กรุณา Login ก่อน — ไม่พบ Token ใน Authorization header"}labadmin@LAPTOP-FX516PM:labadmin@LAPTOP-FX516PM:~$
+labadmin@LAPTOP-FX516PM:~$ ALICE_TOKEN=$(curl -s -X POST http://localhost/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"password123"}' | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+labadmin@LAPTOP-FX516PM:~$ curl -X DELETE http://localhost/api/tasks/4 \
+  -H "Authorization: Bearer $ALICE_TOKEN"
+{"error":"Forbidden"}labadmin@LAPTOP-FX516PM:~$
+labadmin@LAPTOP-FX516PM:~$
+labadmin@LAPTOP-FX516PM:~$ for i in {1..8}; do
+  echo "Attempt $i:"
+  curl -s -o /dev/null -w "%{http_code}" \
+    -X POST http://localhost/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"alice@example.com","password":"wrongpassword"}'
+  echo ""
+  sleep 0.2
+done
+Attempt 1:
+401
+Attempt 2:
+401
+Attempt 3:
+401
+Attempt 4:
+401
+Attempt 5:
+429
+Attempt 6:
+429
+Attempt 7:
+429
+Attempt 8:
+429
+labadmin@LAPTOP-FX516PM:~$
+labadmin@LAPTOP-FX516PM:~$ curl -X POST http://localhost/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com'\''-- ",
+    "password": "anything"
+  }'
+
+# ลอง SQL Injection ผ่าน task query
+curl -X GET "http://localhost/api/tasks/?id=1;DROP TABLE tasks--" \
+  -H "Authorization: Bearer $ALICE_TOKEN"
+{"error":"Email หรือ Password ไม่ถูกต้อง"}curl: (3) URL rejected: Malformed input to a URL function
+labadmin@LAPTOP-FX516PM:~$
+labadmin@LAPTOP-FX516PM:~$

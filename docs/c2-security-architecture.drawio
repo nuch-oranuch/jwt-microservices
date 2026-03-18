@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1"
+  tooltips="1" connect="1" arrows="1" fold="1" page="1"
+  pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- Title -->
+    <mxCell id="title" value="C2: Task Board Security Architecture (Week 12)"
+      style="text;html=1;strokeColor=none;fillColor=none;align=center;
+             verticalAlign=middle;whiteSpace=wrap;rounded=0;
+             fontSize=18;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="200" y="20" width="760" height="40" as="geometry" />
+    </mxCell>
+
+    <!-- Internet/User -->
+    <mxCell id="user" value="🌐 Browser / User" 
+      style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;
+             fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="40" y="200" width="120" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- Nginx API Gateway -->
+    <mxCell id="nginx" value="🛡️ Nginx API Gateway&#xa;[Container: nginx:alpine]&#xa;&#xa;- Rate Limiting (5r/m auth)&#xa;- Route /api/auth → auth-svc&#xa;- Route /api/tasks → task-svc&#xa;- Route /api/users → user-svc"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0a30a;
+             fontColor=#000000;strokeColor=#BD7000;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="230" y="170" width="220" height="130" as="geometry" />
+    </mxCell>
+
+    <!-- Auth Service -->
+    <mxCell id="auth-svc" value="🔑 Auth Service&#xa;[Container: Node.js]&#xa;&#xa;- POST /api/auth/login&#xa;- POST /api/auth/register&#xa;- GET /api/auth/verify&#xa;- Issues JWT Token"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;
+             strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="520" y="80" width="200" height="130" as="geometry" />
+    </mxCell>
+
+    <!-- Task Service -->
+    <mxCell id="task-svc" value="📋 Task Service&#xa;[Container: Node.js]&#xa;&#xa;- CRUD /api/tasks&#xa;- JWT Middleware&#xa;- Role-based access"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;
+             strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="520" y="235" width="200" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- User Service -->
+    <mxCell id="user-svc" value="👤 User Service&#xa;[Container: Node.js]&#xa;&#xa;- GET /api/users/me&#xa;- GET /api/users (admin)&#xa;- JWT Middleware"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;
+             strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="520" y="375" width="200" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- Auth DB -->
+    <mxCell id="auth-db" value="🗄️ auth-db&#xa;[PostgreSQL]&#xa;auth_users table"
+      style="shape=mxgraph.flowchart.database;whiteSpace=wrap;html=1;
+             fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="790" y="100" width="120" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- Task DB -->
+    <mxCell id="task-db" value="🗄️ task-db&#xa;[PostgreSQL]&#xa;tasks table"
+      style="shape=mxgraph.flowchart.database;whiteSpace=wrap;html=1;
+             fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="790" y="250" width="120" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- User DB -->
+    <mxCell id="user-db" value="🗄️ user-db&#xa;[PostgreSQL]&#xa;user_profiles table"
+      style="shape=mxgraph.flowchart.database;whiteSpace=wrap;html=1;
+             fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="790" y="390" width="120" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- Loki -->
+    <mxCell id="loki" value="📊 Loki + Grafana&#xa;[Monitoring Stack]&#xa;&#xa;- Centralized Logs&#xa;- Security Events&#xa;- Failed logins alert"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;
+             strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="230" y="370" width="200" height="110" as="geometry" />
+    </mxCell>
+
+    <!-- Edges -->
+    <mxCell id="e1" value="HTTPS :80" style="edgeStyle=orthogonalEdgeStyle;"
+      edge="1" source="user" target="nginx" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e2" value="/api/auth/*" style="edgeStyle=orthogonalEdgeStyle;"
+      edge="1" source="nginx" target="auth-svc" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e3" value="/api/tasks/* (JWT)" style="edgeStyle=orthogonalEdgeStyle;"
+      edge="1" source="nginx" target="task-svc" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e4" value="/api/users/* (JWT)" style="edgeStyle=orthogonalEdgeStyle;"
+      edge="1" source="nginx" target="user-svc" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e5" edge="1" source="auth-svc" target="auth-db" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e6" edge="1" source="task-svc" target="task-db" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e7" edge="1" source="user-svc" target="user-db" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e8" value="stdout logs" style="dashed=1;"
+      edge="1" source="auth-svc" target="loki" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e9" value="stdout logs" style="dashed=1;"
+      edge="1" source="task-svc" target="loki" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+  </root>
+</mxGraphModel>
